@@ -1,12 +1,11 @@
-﻿// 2023 Takeru Yui All Rights Reserved.
-#pragma once
+﻿#pragma once
 
 #include "DxLib.h"
 
 /// <summary>
 /// プレイヤークラス
 /// </summary>
-class Player final
+class Player
 {
 public:
 	Player();				// コンストラクタ.
@@ -21,10 +20,13 @@ public:
 	const VECTOR& GetPos() const { return m_pos; }
 	const VECTOR& GetDir() const { return m_dir; }
 
+
+	void Test();
+	void TestAnimDelete();
 private:
 	int		m_modelHandle;	// モデルハンドル.
-	int		m_jumpAcc;
-	int     m_Gravity;
+	float	m_jumpAcc;
+	float   m_Gravity;
 	bool	m_jumpFlag;
 	VECTOR	m_pos;			// ポジション.
 	VECTOR	m_velocity;		// 移動力.
@@ -33,4 +35,15 @@ private:
 	// 静的定数.
 	static const float m_Speed;
 	static const float m_Scale;
+
+
+
+
+
+
+	//テスト用の関数ちゃん
+	int AttachIndex = 0;
+	int TotalTime = 0;
+	float PlayTime = 0.0f;
+	int testAnimNum = 10;
 };
