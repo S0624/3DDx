@@ -20,4 +20,4 @@ public:
 
 private:
 	VECTOR	m_pos;			// ポジション.
-};
+}; 

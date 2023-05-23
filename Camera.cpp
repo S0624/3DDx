@@ -44,8 +44,11 @@ void Camera::Update(const Player& player)
 	SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
 	// カメラの位置、どこを見ているかを設定する
 	SetCameraPositionAndTarget_UpVecY(VGet(550, 10, 0), VGet(550.0f, 10.0f, 0.0f));
-	VECTOR pos = VAdd(player.GetPos(), VGet(0, 200, -300.0f));
-	VECTOR lookPos = VAdd(player.GetPos(), VGet(0, 80.0f, 750.f));
+	//VECTOR pos = VAdd(player.GetPos(), VGet(0, 200, -300.0f));
+	//VECTOR lookPos = VAdd(player.GetPos(), VGet(0, 80.0f, 750.f));
+
+	VECTOR pos = VAdd(VGet(player.GetPos().x, 0, player.GetPos().z), VGet(0, 200, -300.0f));
+	VECTOR lookPos = VAdd(VGet(player.GetPos().x, 0, player.GetPos().z), VGet(0, 80.0f, 750.f));
 
 	// カメラに位置を反映.
 	SetCameraPositionAndTarget_UpVecY(pos, lookPos);

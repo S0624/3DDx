@@ -1,10 +1,11 @@
 ﻿// 2023 Takeru Yui All Rights Reserved.
 #include "Player.h"
+#include"Pad.h"
 
 // 静的定数
 // 速度（1=1m、60fps固定として、時速10km）
 // 10000m ÷ 時間 ÷ 分 ÷ 秒 ÷ フレーム
-const float Player::m_Speed = 3.0f;
+const float Player::m_Speed = 5.0f;
 //const float Player::Speed = static_cast<float>(10000.0 / 60.0 / 60.0 / 60.0);
 const float Player::m_Scale = 0.25f;		// スケール
 
@@ -20,7 +21,7 @@ Player::Player()
 	m_velocity = VGet(0, 0, 0);
 	m_dir = VGet(0, 0, 1);
 	MV1SetUseZBuffer(m_modelHandle, true);
-	m_Gravity - -1;
+	m_Gravity = -5;
 }
 
 /// <summary>
@@ -37,37 +38,44 @@ Player::~Player()
 /// </summary>
 void Player::Update()
 {
-	m_jumpAcc += m_Gravity;
+	Pad::update();
+	//m_pos.y += m_Gravity;
 	m_pos.y += m_jumpAcc;
+	if (m_pos.y > 50.0f)
+	{
+		m_jumpAcc = -5.0f;
+	}
 	if (m_pos.y < 0.0f)
 	{
 		m_pos.y = 0.0f;
-		m_jumpAcc = 0.0f;
+		m_jumpFlag = false;
 	}
 	// キー入力取得
 	int Key = GetJoypadInputState(DX_INPUT_KEY_PAD1);
 	// 単純に方向転換
 	m_dir = VGet(0, 0, 0);
-	if (Key & PAD_INPUT_UP)
+	if (Pad::isPress(PAD_INPUT_UP))
 	{
 		m_dir = VAdd(m_dir, VGet(0, 0, 1));
 	}
-	else if (Key & PAD_INPUT_DOWN)
+	else if (Pad::isPress(PAD_INPUT_DOWN))
 	{
 		m_dir = VAdd(m_dir, VGet(0, 0, -1));
 	}
-	if (Key & PAD_INPUT_RIGHT)
+	if (Pad::isPress(PAD_INPUT_RIGHT))
 	{
 		m_dir = VAdd(m_dir, VGet(1, 0, 0));
 	}
-	else if (Key & PAD_INPUT_LEFT)
+	else if (Pad::isPress(PAD_INPUT_LEFT))
 	{
 		m_dir = VAdd(m_dir, VGet(-1, 0, 0));
 	}
-	if (Key & PAD_INPUT_1)
+	
+	if (Pad::isPress(PAD_INPUT_1) && !m_jumpFlag)
 	{
 		//m_dir = VAdd(m_dir, VGet(0, 1, 0));
-		m_jumpAcc = 10;
+		m_jumpAcc = 3;
+		m_jumpFlag = true;
 	}
 
 

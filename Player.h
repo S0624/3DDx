@@ -25,6 +25,7 @@ private:
 	int		m_modelHandle;	// モデルハンドル.
 	int		m_jumpAcc;
 	int     m_Gravity;
+	bool	m_jumpFlag;
 	VECTOR	m_pos;			// ポジション.
 	VECTOR	m_velocity;		// 移動力.
 	VECTOR	m_dir;			// 回転方向.
