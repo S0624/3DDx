@@ -5,27 +5,35 @@
 // 速度（1=1m、60fps固定として、時速10km）
 // 10000m ÷ 時間 ÷ 分 ÷ 秒 ÷ フレーム
 const float Player::m_Speed = 5.0f;
-//const float Player::Speed = static_cast<float>(10000.0 / 60.0 / 60.0 / 60.0);
 const float Player::m_Scale = 0.25f;		// スケール
 
 /// <summary>
 /// コンストラクタ
 /// </summary>
-Player::Player()
-	: m_modelHandle(-1)
+Player::Player(): 
+	m_modelHandle(-1),
+	m_jumpAcc(0.0f),
+	m_Gravity(-5.0f),
+	m_jumpFlag(false),
+	m_pos(),
+	m_velocity(),
+	m_dir(),
+	m_attachIndex(0),
+	m_totalTime(0),
+	m_animTime(0.0f),
+	m_attachAnimNum(10)
 {
-	//// ３Ｄモデルの読み込み
+	// ３Ｄモデルの読み込み
 	m_modelHandle = MV1LoadModel("Data/Model/Robot.mv1");
-	m_pos = VGet(450, 0, 0);
-	m_velocity = VGet(0, 0, 0);
-	m_dir = VGet(0, 0, 1);
+	m_pos = VGet(450.0f, 0.0f, 0.0f);
+	m_velocity = VGet(0.0f, 0.0f, 0.0f);
+	m_dir = VGet(0.0f, 0.0f, 1.0f);
 	MV1SetUseZBuffer(m_modelHandle, true);
-	m_Gravity = -5;
 
-	// ３Ｄモデルの０番目のアニメーションをアタッチする
-	AttachIndex = MV1AttachAnim(m_modelHandle, static_cast<int>(testAnimNum), -1, false);
+	// ３Ｄモデルのアニメーションをアタッチする
+	m_attachIndex = MV1AttachAnim(m_modelHandle, static_cast<int>(m_attachAnimNum), -1, false);
 	// アタッチしたアニメーションの総再生時間を取得する
-	TotalTime = MV1GetAttachAnimTotalTime(m_modelHandle, AttachIndex);
+	m_totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, m_attachIndex);
 
 }
 
@@ -43,9 +51,9 @@ Player::~Player()
 /// </summary>
 void Player::Update()
 {
-	Pad::update();
+	Pad::update();	//パッドのアップデート
 
-	Test();
+	PlayAnimation(); //プレイヤーのアニメーション処理
 	//m_pos.y += m_Gravity;
 	m_pos.y += m_jumpAcc;
 	if (m_pos.y > 50.0f)
@@ -57,41 +65,8 @@ void Player::Update()
 		m_pos.y = 0.0f;
 		m_jumpFlag = false;
 	}
-	// キー入力取得
-	//int Key = GetJoypadInputState(DX_INPUT_KEY_PAD1);
-	// 単純に方向転換
-	m_dir = VGet(0, 0, 0);
-	if (Pad::isPress(PAD_INPUT_UP))
-	{
-		m_dir = VAdd(m_dir, VGet(0, 0, 1));
-		//testAnimNum = 6;
-	}
-	else if (Pad::isPress(PAD_INPUT_DOWN))
-	{
-		m_dir = VAdd(m_dir, VGet(0, 0, -1));
-		//testAnimNum = 6;
-	}
-	if (Pad::isPress(PAD_INPUT_RIGHT))
-	{
-		m_dir = VAdd(m_dir, VGet(1, 0, 0));
-		//testAnimNum = 6;
-	}
-	else if (Pad::isPress(PAD_INPUT_LEFT))
-	{
-		m_dir = VAdd(m_dir, VGet(-1, 0, 0));
-		//testAnimNum = 6;
-	}
 
-	if (Pad::isPress(PAD_INPUT_1) && !m_jumpFlag)
-	{
-		//m_dir = VAdd(m_dir, VGet(0, 1, 0));
-		m_jumpAcc = 3;
-		m_jumpFlag = true;
-		testAnimNum = 3;
-		PlayTime = 0;
-		TestAnimDelete();
-	}
-
+	PlayerMoveUpdate();	//プレイヤーの移動処理
 
 	// ゼロ除算避け
 	if (VSquareSize(m_dir) > 0)
@@ -117,7 +92,6 @@ void Player::Update()
 	// 回転
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, 91.0f, 0.0f));
 
-	//printfDx("%f %f %f\n", dir.x, dir.y, dir.z);
 	printfDx("%f %f %f\n", m_pos.x, m_pos.y, m_pos.z);
 }
 
@@ -130,25 +104,56 @@ void Player::Draw()
 	MV1DrawModel(m_modelHandle);
 }
 
-void Player::Test()
+void Player::PlayerMoveUpdate()
 {
-	PlayTime += 0.5f;
-	if (PlayTime >= TotalTime)
+	// 単純に方向転換
+	m_dir = VGet(0.0f, 0.0f, 0.0f);
+	if (Pad::isPress(PAD_INPUT_UP))
 	{
-		PlayTime = 0.0f;
-		testAnimNum = 10;
-		TestAnimDelete();
+		m_dir = VAdd(m_dir, VGet(0.0f, 0.0f, 1.0f));
+	}
+	else if (Pad::isPress(PAD_INPUT_DOWN))
+	{
+		m_dir = VAdd(m_dir, VGet(0.0f, 0.0f, -1.0f));
+	}
+	if (Pad::isPress(PAD_INPUT_RIGHT))
+	{
+		m_dir = VAdd(m_dir, VGet(1.0f, 0.0f, 0.0f));
+	}
+	else if (Pad::isPress(PAD_INPUT_LEFT))
+	{
+		m_dir = VAdd(m_dir, VGet(-1.0f, 0.0f, 0.0f));
 	}
 
-	MV1SetAttachAnimTime(m_modelHandle, AttachIndex, PlayTime);
+	if (Pad::isPress(PAD_INPUT_1) && !m_jumpFlag)
+	{
+		m_jumpAcc = 3;
+		m_jumpFlag = true;
+		m_attachAnimNum = 3;
+		m_animTime = 0;
+		DetachAnimation();
+	}
+}
+
+void Player::PlayAnimation()
+{
+	m_animTime += 0.5f;
+	if (m_animTime >= m_totalTime)
+	{
+		m_animTime = 0.0f;
+		m_attachAnimNum = 10;
+		DetachAnimation();
+	}
+
+	MV1SetAttachAnimTime(m_modelHandle, m_attachIndex, m_animTime);
 
 }
 
-void Player::TestAnimDelete()
+void Player::DetachAnimation()
 {
-	MV1DetachAnim(m_modelHandle, AttachIndex);
-	// ３Ｄモデルの０番目のアニメーションをアタッチする
-	AttachIndex = MV1AttachAnim(m_modelHandle, testAnimNum, -1, false);
+	MV1DetachAnim(m_modelHandle, m_attachIndex);
+	// ３Ｄモデルのアニメーションをアタッチする
+	m_attachIndex = MV1AttachAnim(m_modelHandle, m_attachAnimNum, -1, false);
 	// アタッチしたアニメーションの総再生時間を取得する
-	TotalTime = MV1GetAttachAnimTotalTime(m_modelHandle, AttachIndex);
+	m_totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, m_attachIndex);
 }
